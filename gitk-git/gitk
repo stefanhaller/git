@@ -2650,6 +2650,10 @@ proc makewindow {} {
     trace add variable worddiff write changeworddiff
     pack .bleft.mid.worddiff -side left -padx 5
 
+    ttk::checkbutton .bleft.mid.firstparent -text [mc "First parent"] \
+	-command changefirstparent -variable firstparent
+    pack .bleft.mid.firstparent -side left -padx 5
+
     set ctext .bleft.bottom.ctext
     text $ctext -background $bgcolor -foreground $fgcolor \
         -state disabled -undo 0 -font textfont \
@@ -7519,6 +7523,7 @@ proc selectline {l isnew {desired_loc {}} {switch_to_patch 0}} {
     global targetrow targetid lastscrollrows
     global autocopy autoselect autosellen jump_to_here
     global vinlinediff
+    global firstparent
 
     unset -nocomplain pending_select
     unset -nocomplain pending_select_file
@@ -7672,7 +7677,7 @@ proc selectline {l isnew {desired_loc {}} {switch_to_patch 0}} {
         gettree $id
     } elseif {$vinlinediff($curview) == 1} {
         showinlinediff $id
-    } elseif {[llength $olds] <= 1} {
+    } elseif {[llength $olds] <= 1 || $firstparent} {
         startdiff $id
     } else {
         mergediff $id
@@ -8117,7 +8122,7 @@ proc diffcmd {ids flags} {
 proc gettreediffs {ids} {
     global treediff treepending limitdiffs vfilelimit curview
 
-    set cmd [diffcmd $ids {--no-commit-id}]
+    set cmd [diffcmd $ids {--no-commit-id -m --first-parent}]
     if {$limitdiffs && $vfilelimit($curview) ne {}} {
             set cmd [concat $cmd -- $vfilelimit($curview)]
     }
@@ -8214,20 +8219,33 @@ proc initblobdiffvars {} {
     set diffseehere -1
 }
 
+proc changefirstparent {} {
+    global treediffs
+    catch {unset treediffs}
+
+    reselectline
+}
+
 proc getblobdiffs {ids} {
     global blobdifffd diffids env
     global treediffs
     global diffcontext
     global ignorespace
     global worddiff
+    global firstparent
     global limitdiffs vfilelimit curview
 
-    set cmd [diffcmd $ids "-p --textconv --submodule -C --cc --no-commit-id -U$diffcontext"]
+    set cmd [diffcmd $ids "-p --textconv --submodule -C --no-commit-id -U$diffcontext"]
     if {$ignorespace} {
         append cmd " -w"
     }
     if {$worddiff ne [mc "Line diff"]} {
         append cmd " --word-diff=porcelain"
+    }
+    if {$firstparent} {
+        append cmd " -m --first-parent"
+    } else {
+        append cmd " --cc"
     }
     if {$limitdiffs && $vfilelimit($curview) ne {}} {
         set cmd [concat $cmd -- $vfilelimit($curview)]
@@ -12702,6 +12720,7 @@ set diffcontext 3
 set mergecolors {red blue "#00ff00" purple brown "#009090" magenta "#808000" "#009000" "#ff0080" cyan "#b07070" "#70b0f0" "#70f0b0" "#f0b070" "#ff70b0"}
 set ignorespace 0
 set worddiff ""
+set firstparent 0
 set markbgcolor "#e0e0ff"
 
 set headbgcolor "#00ff00"
