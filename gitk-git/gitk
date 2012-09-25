@@ -706,12 +706,17 @@ proc stop_rev_list {view} {
 }
 
 proc reset_pending_select {selid} {
-    global pending_select mainheadid selectheadid
+    global pending_select pending_select_file pending_select_line
+    global mainheadid selectheadid select_file select_line
 
     if {$selid ne {}} {
         set pending_select $selid
     } elseif {$selectheadid ne {}} {
         set pending_select $selectheadid
+        if {$select_file ne {} && $select_line ne {}} {
+            set pending_select_file $select_file
+            set pending_select_line $select_line
+        }
     } else {
         set pending_select $mainheadid
     }
@@ -1849,6 +1854,16 @@ proc getcommitlines {fd inst view updating}  {
     return 2
 }
 
+proc select_pending_line {} {
+    global pending_select pending_select_file pending_select_line
+
+    set desired_loc [expr {[info exists pending_select_file]
+        ? [list $pending_select_file $pending_select_line]
+        : {}}]
+
+    selectline [rowofcommit $pending_select] 1 $desired_loc
+}
+
 proc chewcommits {} {
     global curview hlview viewcomplete
     global pending_select
@@ -1863,7 +1878,7 @@ proc chewcommits {} {
             reset_pending_select {}
 
             if {[commitinview $pending_select $curview]} {
-                selectline [rowofcommit $pending_select] 1
+                select_pending_line
             } else {
                 set row [first_real_row]
                 selectline $row 1
@@ -5429,7 +5444,7 @@ proc layoutmore {} {
     if {[info exists pending_select] &&
         [commitinview $pending_select $curview]} {
         update
-        selectline [rowofcommit $pending_select] 1
+        select_pending_line
     }
     drawvisible
 }
@@ -7506,6 +7521,8 @@ proc selectline {l isnew {desired_loc {}} {switch_to_patch 0}} {
     global vinlinediff
 
     unset -nocomplain pending_select
+    unset -nocomplain pending_select_file
+    unset -nocomplain pending_select_line
     $canv delete hover
     normalline
     unsel_reflist
@@ -12837,6 +12854,8 @@ if {[catch {set gitdir [exec git rev-parse --git-dir]}]} {
 
 set selecthead {}
 set selectheadid {}
+set select_file {}
+set select_line {}
 
 set revtreeargs {}
 set cmdline_files {}
@@ -12851,6 +12870,12 @@ foreach arg $argv {
         }
         "--select-commit=*" {
             set selecthead [string range $arg 16 end]
+        }
+        "--select-file=*" {
+            set select_file [string range $arg 14 end]
+        }
+        "--select-line=*" {
+            set select_line [string range $arg 14 end]
         }
         "--argscmd=*" {
             set revtreeargscmd [string range $arg 10 end]
