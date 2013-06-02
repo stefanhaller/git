@@ -1,6 +1,8 @@
 # The default target of this Makefile is...
 all::
 
+uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+
 prefix ?= $(HOME)
 bindir ?= $(prefix)/bin
 sharedir ?= $(prefix)/share
@@ -16,6 +18,7 @@ RM ?= rm -f
 
 DESTDIR_SQ = $(subst ','\'',$(DESTDIR))
 bindir_SQ = $(subst ','\'',$(bindir))
+libdir_SQ = $(subst ','\'',$(gitk_libdir))
 TCLTK_PATH_SQ = $(subst ','\'',$(TCLTK_PATH))
 
 ### Detect Tck/Tk interpreter path changes
@@ -50,9 +53,41 @@ endif
 
 all:: gitk-wish $(ALL_MSGFILES)
 
+GITK_MACOSXAPP :=
+
+ifeq ($(uname_S),Darwin)
+	GITK_MACOSXAPP := YesPlease
+endif
+
+ifdef GITK_MACOSXAPP
+all:: Gitk.app
+
+TKFRAMEWORK = /System/Library/Frameworks/Tk.framework/Resources/Wish Shell.app
+TKEXECUTABLE = Wish Shell
+GIT_VERSION = 1.7.3.2
+
+Gitk.app: macosx/Info.plist macosx/gitk.icns macosx/AppMain.tcl
+	$(QUIET_GEN)rm -rf '$@' '$@'+ && \
+	mkdir -p '$@'+/Contents/MacOS && \
+	mkdir -p '$@'+/Contents/Resources/Scripts && \
+	cp '$(subst ','\'',$(subst \,,$(TCLTK_PATH)))' \
+		'$@'+/Contents/MacOS/Wish && \
+	cp macosx/gitk.icns '$@'+/Contents/Resources && \
+	sed -e 's/@@GIT_VERSION@@/$(GIT_VERSION)/g' \
+		macosx/Info.plist \
+		>'$@'+/Contents/Info.plist && \
+	sed -e 's|@@bindir@@|$(bindir_SQ)|' \
+		macosx/AppMain.tcl \
+		>'$@'+/Contents/Resources/Scripts/AppMain.tcl && \
+	mv '$@'+ '$@'
+endif
+
 install:: all
 	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(bindir_SQ)'
 	$(INSTALL) -m 755 gitk-wish '$(DESTDIR_SQ)$(bindir_SQ)'/gitk
+ifdef GITK_MACOSXAPP
+	find 'Gitk.app' | cpio -pud '$(DESTDIR_SQ)$(libdir_SQ)'
+endif
 	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(msgsdir_SQ)'
 	$(foreach p,$(ALL_MSGFILES), $(INSTALL) -m 644 $p '$(DESTDIR_SQ)$(msgsdir_SQ)' &&) true
 
@@ -65,7 +100,7 @@ clean::
 
 gitk-wish: gitk GIT-TCLTK-VARS
 	$(QUIET_GEN)$(RM) $@ $@+ && \
-	$(SHELL_PATH) ./generate-tcl.sh "$(TCLTK_PATH_SQ)" "$<" "$@"
+	$(SHELL_PATH) ./generate-tcl.sh "$(gitk_libdir)/Gitk.app/Contents/MacOS/Wish" "$<" "$@"
 
 $(PO_TEMPLATE): gitk
 	$(XGETTEXT) -kmc -LTcl --package-name=Gitk -o $@ gitk
