@@ -6,10 +6,12 @@ namespace eval color {
 	# Variable colors
 	# Preffered way to set widget colors is using add_option.
 	# In some cases, like with tags in_diff/in_sel, we use these colors.
+	variable text_bg				white
 	variable select_bg				lightgray
 	variable select_fg				black
 	variable inactive_select_bg		lightgray
 	variable inactive_select_fg		black
+	variable hover_bg				"#f3f3f3"
 
 	proc sync_with_theme {} {
 		set base_bg				[ttk::style lookup . -background]
@@ -25,6 +27,8 @@ namespace eval color {
 		set ::color::select_fg $select_fg
 		set ::color::inactive_select_bg $inactive_select_bg
 		set ::color::inactive_select_fg $inactive_select_fg
+		set ::color::text_bg $text_bg
+		set ::color::hover_bg [make_hover_bg $text_bg]
 
 		proc add_option {key val} {
 			option add $key $val widgetDefault
@@ -54,6 +58,18 @@ proc convert_rgb_to_gray {rgb} {
 	lassign [winfo rgb . $rgb] r g b
 	set gray [expr {($r / 256 + $g / 256 + $b / 256) / 3}]
 	return [format "#%2.2X%2.2X%2.2X" $gray $gray $gray]
+}
+
+proc make_hover_bg {bg} {
+	lassign [winfo rgb . $bg] r g b
+	set r [expr {$r / 256}]
+	set g [expr {$g / 256}]
+	set b [expr {$b / 256}]
+	set incr [expr {($r + $g + $b) / 3 > 128} ? -12 : 12]
+	incr r $incr
+	incr g $incr
+	incr b $incr
+	return [format "#%2.2X%2.2X%2.2X" $r $g $b]
 }
 
 proc ttk_get_current_theme {} {

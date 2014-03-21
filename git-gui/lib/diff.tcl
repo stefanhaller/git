@@ -363,6 +363,9 @@ proc read_diff {fd conflict_size cont_info} {
 	global is_3way_diff is_conflict_diff current_diff_header
 	global current_diff_queue
 
+	set current_hunk_no 0
+	set current_hunk_tag ""
+
 	$ui_diff conf -state normal
 	while {[gets $fd line] >= 0} {
 		foreach {line markup} [parse_color_line $line] break
@@ -379,7 +382,17 @@ proc read_diff {fd conflict_size cont_info} {
 
 		# -- Check for end of diff header (any hunk line will do this).
 		#
-		if {[regexp {^@@+ } $line]} {set ::current_diff_inheader 0}
+		if {[regexp {^@@+ } $line]} {
+			set ::current_diff_inheader 0
+
+			set current_hunk_no [expr $current_hunk_no + 1]
+			set current_hunk_tag "hunk$current_hunk_no"
+			$ui_diff tag bind $current_hunk_tag <Enter> \
+				"$ui_diff tag conf $current_hunk_tag -background $color::hover_bg"
+			$ui_diff tag bind $current_hunk_tag <Leave> \
+				"$ui_diff tag conf $current_hunk_tag -background $color::text_bg"
+			$ui_diff tag lower $current_hunk_tag
+		}
 
 		# -- Automatically detect if this is a 3 way diff.
 		#
@@ -496,6 +509,7 @@ proc read_diff {fd conflict_size cont_info} {
 			}
 			}
 		}
+		set tags "$tags $current_hunk_tag"
 		set mark [$ui_diff index "end - 1 line linestart"]
 		$ui_diff insert end $line $tags
 		if {[string index $line end] eq "\r"} {
