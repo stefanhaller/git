@@ -12980,30 +12980,6 @@ setcoords
 makewindow
 if {$::tcl_platform(platform) eq {windows} && [file exists $gitk_prefix/etc/git.ico]} {
     wm iconbitmap . -default $gitk_prefix/etc/git.ico
-} else {
-    catch {
-        image create photo gitlogo      -width 16 -height 16
-
-        image create photo gitlogominus -width  4 -height  2
-        gitlogominus put #C00000 -to 0 0 4 2
-        gitlogo copy gitlogominus -to  1 5
-        gitlogo copy gitlogominus -to  6 5
-        gitlogo copy gitlogominus -to 11 5
-        image delete gitlogominus
-
-        image create photo gitlogoplus  -width  4 -height  4
-        gitlogoplus  put #008000 -to 1 0 3 4
-        gitlogoplus  put #008000 -to 0 1 4 3
-        gitlogo copy gitlogoplus  -to  1 9
-        gitlogo copy gitlogoplus  -to  6 9
-        gitlogo copy gitlogoplus  -to 11 9
-        image delete gitlogoplus
-
-        image create photo gitlogo32    -width 32 -height 32
-        gitlogo32 copy gitlogo -zoom 2 2
-
-        wm iconphoto . -default gitlogo gitlogo32
-    }
 }
 # wait for the window to become visible
 if {![winfo viewable .]} {tkwait visibility .}
