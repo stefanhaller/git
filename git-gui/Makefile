@@ -158,7 +158,7 @@ Git\ Gui.app: GIT-VERSION-FILE GIT-GUI-BUILD-OPTIONS \
 		macosx/Info.plist \
 		macosx/git-gui.icns \
 		macosx/AppMain.tcl \
-		$(TKEXECUTABLE)
+		$(TCLTK_PATH)
 	$(QUIET_GEN)$(SHELL_PATH) generate-macos-app.sh . "$@" ./GIT-GUI-BUILD-OPTIONS ./GIT-VERSION-FILE
 endif
 

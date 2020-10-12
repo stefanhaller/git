@@ -15,11 +15,11 @@ rm -rf "$OUTPUT" "$OUTPUT+"
 mkdir -p "$OUTPUT+/Contents/MacOS"
 mkdir -p "$OUTPUT+/Contents/Resources/Scripts"
 
-cp "$TKEXECUTABLE" "$OUTPUT+/Contents/MacOS"
+cp "$TCLTK_PATH" "$OUTPUT+/Contents/MacOS/Wish"
 cp "$SOURCE_DIR/macosx/git-gui.icns" "$OUTPUT+/Contents/Resources"
 sed \
 	-e "s/@@GITGUI_VERSION@@/$GITGUI_VERSION/g" \
-	-e "s/@@GITGUI_TKEXECUTABLE@@/$(basename "$TKEXECUTABLE")/g" \
+	-e "s/@@GITGUI_TKEXECUTABLE@@/Wish/g" \
 	"$SOURCE_DIR/macosx/Info.plist" \
 	>"$OUTPUT+/Contents/Info.plist"
 sed \
