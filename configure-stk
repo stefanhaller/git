@@ -1,0 +1,11 @@
+#!/bin/sh
+
+cat >config.mak <<EOT
+prefix=/usr/local/git
+TCL_PATH=/usr/local/git/tcl-tk/bin/tclsh9.0
+TCLTK_PATH=/usr/local/git/tcl-tk/bin/wish9.0
+
+NO_DARWIN_PORTS=YesPlease
+NO_GETTEXT=1
+NO_OPENSSL=1
+EOT
