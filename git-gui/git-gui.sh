@@ -2377,7 +2377,8 @@ proc toggle_or_diff {mode w args} {
 				set last_clicked {}
 				return
 			}
-			set lno [expr {int([lindex [$w tag ranges in_diff] 0])}]
+			set ranges [$w tag ranges in_diff]
+			set lno [expr {[llength $ranges] > 0 ? int([lindex $ranges 0]) : 0}]
 		}
 		if {$mode eq "toggle"} {
 			set col 0; set y 2
