@@ -3806,10 +3806,17 @@ foreach i [list $ui_index $ui_workdir] {
 }
 unset i
 
-bind .   <Alt-Key-1> {focus_widget $::ui_workdir}
-bind .   <Alt-Key-2> {focus_widget $::ui_index}
-bind .   <Alt-Key-3> {focus $::ui_diff}
-bind .   <Alt-Key-4> {focus $::ui_comm}
+if {[is_MacOSX]} {
+	bind .   <$M1B-Key-1> {focus_widget $::ui_workdir}
+	bind .   <$M1B-Key-2> {focus_widget $::ui_index}
+	bind .   <$M1B-Key-3> {focus $::ui_diff}
+	bind .   <$M1B-Key-4> {focus $::ui_comm}
+} else {
+	bind .   <Alt-Key-1> {focus_widget $::ui_workdir}
+	bind .   <Alt-Key-2> {focus_widget $::ui_index}
+	bind .   <Alt-Key-3> {focus $::ui_diff}
+	bind .   <Alt-Key-4> {focus $::ui_comm}
+}
 
 set file_lists_last_clicked($ui_index) {}
 set file_lists_last_clicked($ui_workdir) {}
