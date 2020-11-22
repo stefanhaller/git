@@ -2505,6 +2505,44 @@ proc add_range_to_selection {w x y} {
 	$w tag add in_sel $begin.0 [expr {$end + 1}].0
 }
 
+proc extend_or_shrink_range {direction w} {
+	global file_lists last_clicked selected_paths
+
+	if {$last_clicked eq {} || [lindex $last_clicked 0] ne $w} {
+		toggle_or_diff direction $w
+		return
+	}
+
+	set anchor [lindex $last_clicked 1]
+	set ranges [$w tag ranges in_sel]
+	if {$ranges eq {}} {
+		set lno $anchor
+	} else {
+		set first_sel [expr {int([lindex $ranges 0])}]
+		set last_sel [expr {int([lindex $ranges end]) - 1}]
+		set lno [expr {abs($first_sel - $anchor) > abs($last_sel - $anchor) ? $first_sel : $last_sel}]
+	}
+
+	incr lno [expr {$direction eq "up" ? -1 : 1}]
+
+	if {$lno < $anchor} {
+		set begin $lno
+		set end $anchor
+	} else {
+		set begin $anchor
+		set end $lno
+	}
+
+	array unset selected_paths
+	foreach path [lrange $file_lists($w) \
+		[expr {$begin - 1}] \
+		[expr {$end - 1}]] {
+		set selected_paths($path) 1
+	}
+	$w tag remove in_sel 0.0 end
+	$w tag add in_sel $begin.0 [expr {$end + 1}].0
+}
+
 proc show_more_context {} {
 	global repo_config
 	if {$repo_config(gui.diffcontext) < 99} {
@@ -3803,6 +3841,8 @@ foreach i [list $ui_index $ui_workdir] {
 	bind $i <Shift-Button-1>  { add_range_to_selection %W %x %y; break }
 	bind $i <Key-Up>          { toggle_or_diff up %W; break }
 	bind $i <Key-Down>        { toggle_or_diff down %W; break }
+	bind $i <Shift-Key-Up>    { extend_or_shrink_range up %W; break }
+	bind $i <Shift-Key-Down>  { extend_or_shrink_range down %W; break }
 }
 unset i
 
