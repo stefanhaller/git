@@ -2585,6 +2585,25 @@ proc toggle_commit_type {} {
 	do_select_commit_type
 }
 
+proc do_select_all {} {
+	global ui_diff ui_comm ui_workdir ui_index
+	global file_lists selected_paths
+
+	set w [focus]
+	switch -- $w \
+		$ui_diff - \
+		$ui_comm {
+			$w tag add sel 0.0 end
+		} \
+		$ui_workdir - \
+		$ui_index {
+			foreach path $file_lists($w) {
+				set selected_paths($path) 1
+			}
+			$w tag add in_sel 0.0 [expr {[llength $file_lists($w)] + 1}].0
+		}
+}
+
 ######################################################################
 ##
 ## ui construction
@@ -2730,7 +2749,7 @@ menu .mbar.edit
 	-accelerator Del
 .mbar.edit add separator
 .mbar.edit add command -label [mc "Select All"] \
-	-command {catch {[focus] tag add sel 0.0 end}} \
+	-command do_select_all \
 	-accelerator $M1T-A
 
 # -- Branch Menu
@@ -3843,6 +3862,8 @@ foreach i [list $ui_index $ui_workdir] {
 	bind $i <Key-Down>        { toggle_or_diff down %W; break }
 	bind $i <Shift-Key-Up>    { extend_or_shrink_range up %W; break }
 	bind $i <Shift-Key-Down>  { extend_or_shrink_range down %W; break }
+	bind $i <$M1B-Key-a> 	  { do_select_all; break }
+	bind $i <$M1B-Key-A> 	  { do_select_all; break }
 }
 unset i
 
