@@ -26,5 +26,7 @@
 	<string>@@GIT_VERSION@@</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSRequiresAquaSystemAppearance</key>
+	<true/>
 </dict>
 </plist>
