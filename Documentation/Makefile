@@ -216,6 +216,8 @@ MAN_BASE_URL = file://$(htmldir)/
 endif
 XMLTO_EXTRA += --stringparam man.base.url.for.relative.links='$(MAN_BASE_URL)'
 
+XMLTO_EXTRA += -x manpage.xsl
+
 ifdef USE_ASCIIDOCTOR
 ASCIIDOC = asciidoctor
 ASCIIDOC_CONF =

@@ -25,7 +25,7 @@ ASCIIDOC_DOCBOOK = docbook
 ASCIIDOC_EXTRA   =
 ASCIIDOC_DEPS    = asciidoc.conf
 XMLTO            = xmlto
-XMLTO_EXTRA      =
+XMLTO_EXTRA      = --skip-validation
 
 ifdef USE_ASCIIDOCTOR
 ASCIIDOC         = asciidoctor
