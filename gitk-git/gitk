@@ -13037,9 +13037,7 @@ if {[info exists permviews]} {
     }
 }
 
-if {[tk windowingsystem] eq "win32"} {
-    focus -force .
-}
+focus -force .
 
 setttkstyle
 set_gui_colors
