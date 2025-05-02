@@ -50,6 +50,37 @@
 #include "tempfile.h"
 #include "sigchain.h"
 
+int endsWith(const char *str, const char *suffix)
+{
+    if (!str || !suffix)
+        return 0;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix > lenstr)
+        return 0;
+    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+static void log(const char *path, const char *msg)
+{
+	int fd = open("/tmp/git.log", O_WRONLY | O_APPEND | O_CREAT, 0644);
+	if (fd < 0)
+		return;
+
+	time_t now;
+	time(&now);
+	struct tm tm;
+	localtime_r(&now, &tm);
+	char datestr[20];
+	if (strftime(datestr, sizeof(datestr), "%Y-%m-%d %H:%M:%S", &tm) == 0)
+		datestr[0] = '\0';
+
+	char buf[1024];
+	snprintf(buf, sizeof(buf), "%s: # git #     %s: %s (%d)\n", datestr, msg, path, getpid());
+	write(fd, buf, strlen(buf));
+	close(fd);
+}
+
 static VOLATILE_LIST_HEAD(tempfile_list);
 
 static int remove_template_directory(struct tempfile *tempfile,
@@ -78,6 +109,10 @@ static void remove_tempfiles(int in_signal_handler)
 
 		if (p->fd >= 0)
 			close(p->fd);
+
+		if (endsWith(p->filename.buf, "index.lock")) {
+			log(p->filename.buf, "delete");
+		}
 
 		if (in_signal_handler)
 			unlink(p->filename.buf);
@@ -137,6 +172,10 @@ static void deactivate_tempfile(struct tempfile *tempfile)
 struct tempfile *create_tempfile_mode(const char *path, int mode)
 {
 	struct tempfile *tempfile = new_tempfile();
+
+	if (endsWith(path, "index.lock")) {
+		log(path, "open");
+	}
 
 	strbuf_add_absolute_path(&tempfile->filename, path);
 	tempfile->fd = open(tempfile->filename.buf,
@@ -345,6 +384,10 @@ int rename_tempfile(struct tempfile **tempfile_p, const char *path)
 		return -1;
 	}
 
+	if (endsWith(tempfile->filename.buf, "index.lock")) {
+		log(tempfile->filename.buf, "rename");
+	}
+
 	if (rename(tempfile->filename.buf, path)) {
 		int save_errno = errno;
 		delete_tempfile(tempfile_p);
@@ -368,6 +411,9 @@ int delete_tempfile(struct tempfile **tempfile_p)
 	err |= close_tempfile_gently(tempfile);
 	err |= unlink_or_warn(tempfile->filename.buf);
 	err |= remove_template_directory(tempfile, 0);
+	if (endsWith(tempfile->filename.buf, "index.lock")) {
+		log(tempfile->filename.buf, "delete");
+	}
 	deactivate_tempfile(tempfile);
 	*tempfile_p = NULL;
 
