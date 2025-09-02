@@ -2354,7 +2354,6 @@ proc bind_mousewheel {} {
         bind $ctext <TouchpadScroll> {
             lassign [tk::PreciseScrollDeltas %D] deltaX deltaY
             $ctext yview scroll [precisescrollval $deltaY 2] units
-            $ctext xview scroll [precisescrollval $deltaX 2] units
         }
         bind $cflist <TouchpadScroll> {
             lassign [tk::PreciseScrollDeltas %D] deltaX deltaY
@@ -2362,7 +2361,6 @@ proc bind_mousewheel {} {
         }
         bind $canv <TouchpadScroll> {
             lassign [tk::PreciseScrollDeltas %D] deltaX deltaY
-            $canv xview scroll [precisescrollval $deltaX] units
             allcanvs yview scroll [precisescrollval $deltaY] units
         }
     }
